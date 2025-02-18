@@ -4,7 +4,6 @@
 import type React from "react";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "./ui/Button";
@@ -23,17 +22,20 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
       });
+      console.log("login result: ", await response.json());
 
-      if (result?.error) {
-        setError("Invalid email or password");
-      } else {
+      if (response.ok) {
         router.push("/");
         router.refresh();
+      } else {
+        setError("Invalid email or password");
       }
     } catch (err) {
       console.log(err);

@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
 import { Button } from "./ui/Button";
 import { Balance } from "./Balance";
 
-export function Navigation() {
+export function Navigation({ userEmail }: { userEmail: string | null }) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  console.log(userEmail);
 
   const isAuthPage = pathname === "/login" || pathname === "/signup";
   if (isAuthPage) return null;
@@ -24,7 +23,7 @@ export function Navigation() {
             >
               Stripe Payment System
             </Link>
-            {session && (
+            {userEmail && (
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 <Link
                   href="/payment"
@@ -50,7 +49,7 @@ export function Navigation() {
                 >
                   History
                 </Link>
-                {session.user?.email === "admin@example.com" && (
+                {userEmail === "admin@example.com" && (
                   <Link
                     href="/admin"
                     className={`${
@@ -64,13 +63,19 @@ export function Navigation() {
             )}
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {session ? (
+            {userEmail ? (
               <div className="flex items-center space-x-4">
                 <Balance />
-                <span className="text-sm text-gray-700">
-                  {session.user?.email}
-                </span>
-                <Button onClick={() => signOut()} variant="secondary">
+                <span className="text-sm text-gray-700">{userEmail}</span>
+
+                <Button
+                  onClick={() =>
+                    fetch("/api/auth/logout", { method: "POST" }).then(() =>
+                      window.location.reload()
+                    )
+                  }
+                  variant="secondary"
+                >
                   Sign out
                 </Button>
               </div>

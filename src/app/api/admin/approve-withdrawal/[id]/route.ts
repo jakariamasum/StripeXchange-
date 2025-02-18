@@ -10,9 +10,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string }; request: Request }
 ) {
   const { id } = params;
+  const { userId } = await request.json();
 
   try {
     const withdrawalRequest = await prisma.withdrawalRequest.findUnique({
@@ -28,10 +29,11 @@ export async function POST(
 
     // Process the withdrawal using Stripe
     const payout = await stripe.payouts.create({
-      amount: withdrawalRequest.amount * 100, // Stripe expects amounts in cents
+      amount: withdrawalRequest.amount * 100,
       currency: withdrawalRequest.currency,
       method: "standard",
     });
+    console.log("payout: ", payout);
 
     // Update the withdrawal request status
     const updatedWithdrawalRequest = await prisma.withdrawalRequest.update({
@@ -39,16 +41,17 @@ export async function POST(
       data: { status: "approved" },
     });
 
-    // Create a transaction record
-    // await prisma.transaction.create({
-    //   data: {
-    //     type: "withdrawal",
-    //     amount: withdrawalRequest.amount,
-    //     currency: withdrawalRequest.currency,
-    //     status: "completed",
-    //     stripePayoutId: payout.id,
-    //   },
-    // });
+    //  Create a transaction record
+    await prisma.transaction.create({
+      data: {
+        type: "withdrawal",
+        amount: withdrawalRequest.amount,
+        currency: withdrawalRequest.currency,
+        status: "completed",
+        stripePayoutId: payout.id,
+        userId,
+      },
+    });
 
     return NextResponse.json(updatedWithdrawalRequest);
   } catch (error) {

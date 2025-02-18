@@ -4,8 +4,7 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
-  const { amount, currency, accountNumber } = await request.json();
-
+  const { amount, currency, accountNumber, userId } = await request.json();
   try {
     const withdrawalRequest = await prisma.withdrawalRequest.create({
       data: {
@@ -13,6 +12,7 @@ export async function POST(request: Request) {
         currency,
         accountNumber,
         status: "pending",
+        userId,
       },
     });
 

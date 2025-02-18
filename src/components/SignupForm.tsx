@@ -29,7 +29,7 @@ export function SignUpForm() {
         },
         body: JSON.stringify({ name, email, password }),
       });
-
+      console.log("signup result: ", response);
       if (response.ok) {
         router.push("/login");
       } else {

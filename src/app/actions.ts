@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getServerSession } from "next-auth/next";
 import { PrismaClient } from "@prisma/client";
 import { CurrencyCode } from "@/types";
 import { convertCurrency } from "@/utils/currency";
+import { cookies } from "next/headers";
 
 const prisma = new PrismaClient();
 
@@ -13,11 +13,11 @@ export async function updateBalance(
   currency: CurrencyCode,
   type: "add" | "subtract"
 ) {
-  const session = await getServerSession();
-  if (!session?.user?.email) throw new Error("Unauthorized");
+  const cookieStore = cookies();
+  const userEmail = cookieStore.get("userEmail")?.value;
 
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { email: userEmail },
     select: {
       balanceUSD: true,
       balanceEUR: true,
@@ -37,7 +37,7 @@ export async function updateBalance(
   const multiplier = type === "add" ? 1 : -1;
 
   await prisma.user.update({
-    where: { email: session.user.email },
+    where: { email: userEmail },
     data: {
       balanceUSD: user.balanceUSD + amountUSD * multiplier,
       balanceEUR: user.balanceEUR + amountEUR * multiplier,
@@ -46,7 +46,6 @@ export async function updateBalance(
     },
   });
 
-  revalidatePath("/dashboard");
   revalidatePath("/payment");
   revalidatePath("/withdraw");
 }
@@ -57,11 +56,10 @@ export async function createTransaction(data: {
   currency: CurrencyCode;
   status: string;
 }) {
-  const session = await getServerSession();
-  if (!session?.user?.email) throw new Error("Unauthorized");
-
+  const cookieStore = cookies();
+  const userEmail = cookieStore.get("userEmail")?.value;
   const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
+    where: { email: userEmail },
   });
 
   if (!user) throw new Error("User not found");
@@ -80,6 +78,5 @@ export async function createTransaction(data: {
     },
   });
 
-  revalidatePath("/dashboard");
   revalidatePath("/history");
 }

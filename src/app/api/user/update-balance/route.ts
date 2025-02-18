@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
 import { PrismaClient } from "@prisma/client";
+import { cookies } from "next/headers";
 
 const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession();
-
-    if (!session?.user?.email) {
+    const cookieStore = cookies();
+    const userEmail = cookieStore.get("userEmail")?.value;
+    if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       | "balanceEUR"
       | "balanceGBP";
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { email: userEmail },
     });
 
     if (!user) {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     }
 
     const updatedUser = await prisma.user.update({
-      where: { email: session.user.email },
+      where: { email: userEmail },
       data: {
         [balanceField]: newBalance,
       },

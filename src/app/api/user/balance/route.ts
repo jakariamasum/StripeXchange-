@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
 import { PrismaClient } from "@prisma/client";
+import { cookies } from "next/headers";
 
 const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const session = await getServerSession();
-
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const cookieStore = cookies();
+    const userEmail = cookieStore.get("userEmail")?.value;
 
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
+      where: { email: userEmail },
       select: {
         balanceUSD: true,
         balanceEUR: true,

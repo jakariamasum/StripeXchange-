@@ -65,7 +65,7 @@ export function PaymentForm() {
           status: "completed",
         });
 
-        router.push("/dashboard");
+        router.push("/payment/success");
       }
     } catch (error) {
       console.log(error);
@@ -87,7 +87,10 @@ export function PaymentForm() {
         step="0.01"
         required
       />
-      <CurrencySelect value={currency} onChange={setCurrency} />
+      <CurrencySelect
+        value={currency}
+        onChange={(value) => setCurrency(value as CurrencyCode)}
+      />
       <div className="space-y-1">
         <label
           htmlFor="card-element"

@@ -1,10 +1,59 @@
-import type React from "react";
-import { SessionProvider } from "next-auth/react";
+"use client";
+import {
+  createContext,
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-interface AuthProviderProps {
-  children: React.ReactNode;
+const UserContext = createContext<IUserProviderValues | undefined>(undefined);
+interface IUser {
+  id: string;
+  email: string;
+  name: string;
+  password: string;
+  balanceUSD: number;
+}
+interface IUserProviderValues {
+  user: IUser | null;
+  isLoading: boolean;
+  setUser: (user: IUser | null) => void;
+  setIsLoading: Dispatch<SetStateAction<boolean>>;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  return <SessionProvider>{children}</SessionProvider>;
-}
+const UserProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<IUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const handleUser = async () => {
+    // const user = await getCurrentUser();
+
+    setUser(user as IUser);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    handleUser();
+  }, [isLoading]);
+
+  return (
+    <UserContext.Provider value={{ user, setUser, isLoading, setIsLoading }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+export const useUser = () => {
+  const context = useContext(UserContext);
+
+  if (context === undefined) {
+    throw new Error("useUser must be used within the UserProvider context");
+  }
+
+  return context;
+};
+
+export default UserProvider;
