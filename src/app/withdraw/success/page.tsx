@@ -1,3 +1,5 @@
+"use client";
+import { Button } from "@/components/ui/Button";
 import { useSearchParams } from "next/navigation";
 
 export default function WithdrawSuccessPage() {
@@ -13,9 +15,9 @@ export default function WithdrawSuccessPage() {
           Your withdrawal request for {amount} {currency} has been successfully
           submitted. It will be processed pending admin approval.
         </p>
-        <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        <Button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
           Go back to Dashboard
-        </button>
+        </Button>
       </div>
     </div>
   );

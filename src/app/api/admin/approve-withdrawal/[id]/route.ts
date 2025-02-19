@@ -20,6 +20,8 @@ export async function POST(
       where: { id },
     });
 
+    console.log("withdraw req: ", withdrawalRequest);
+
     if (!withdrawalRequest) {
       return NextResponse.json(
         { error: "Withdrawal request not found" },
@@ -27,12 +29,19 @@ export async function POST(
       );
     }
 
+    // console.log("stripe payout: ", stripe.payouts);
     // Process the withdrawal using Stripe
-    const payout = await stripe.payouts.create({
-      amount: withdrawalRequest.amount * 100,
-      currency: withdrawalRequest.currency,
-      method: "standard",
-    });
+    const payout = await stripe.payouts.create(
+      {
+        amount: withdrawalRequest.amount * 100,
+        currency: withdrawalRequest.currency,
+        method: "standard",
+        // destination: withdrawalRequest.accountNumber,
+      },
+      {
+        stripeAccount: withdrawalRequest.accountNumber,
+      }
+    );
     console.log("payout: ", payout);
 
     // Update the withdrawal request status
